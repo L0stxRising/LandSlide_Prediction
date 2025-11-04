@@ -1,33 +1,45 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import onnxruntime as rt
 import numpy as np
+import os
 
-# === Initialize FastAPI app ===
+# === Initialize app ===
 app = FastAPI(title="Landslide Prediction API")
 
-# === Enable CORS (so frontend can fetch data) ===
+# === Enable CORS ===
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # allow all origins (you can restrict later)
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# === Load ONNX model ===
-sess = rt.InferenceSession("model.onnx")
+# === Serve static files ===
+# If your index.html and assets are inside a folder named "static"
+if not os.path.exists("static"):
+    os.makedirs("static")
 
-# === Input Schema ===
-class InputData(BaseModel):
-    numbers: list[float]
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/")
-def root():
-    return {"message": "Landslide Prediction API is running!"}
+def serve_home():
+    """Serve the main website page"""
+    index_path = os.path.join("static", "index.html")
+    if os.path.exists(index_path):
+        return FileResponse(index_path)
+    return {"error": "index.html not found"}
 
+# === ONNX Model ===
+sess = rt.InferenceSession("model.onnx")
 encList = ["Low", "Moderate", "High", "Very High"]
+
+class InputData(BaseModel):
+    numbers: list[float]
 
 @app.post("/predict")
 def predict(data: InputData):
