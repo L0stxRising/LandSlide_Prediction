@@ -45,15 +45,17 @@ class InputData(BaseModel):
 def predict(data: InputData):
     try:
         input_name = sess.get_inputs()[0].name
-        inputs = {input_name: [data.numbers]}
-        output = sess.run(None, inputs)
-        prediction = output[0][0]
-        pred_index = int(np.argmax(prediction))
-        pred_class = encList[pred_index]
-        return {
-            "prediction": pred_class,
-            "raw_output": prediction.tolist(),
-            "index": pred_index
-        }
+        # model expects 1D, so send np.array directly
+        input_data = np.array(data.numbers, dtype=np.float32)
+
+        # run inference
+        output = sess.run(None, {input_name: input_data})
+        prediction = output[0]
+
+        pred = int(np.argmax(prediction))
+        predclass = encList[pred]
+
+        return {"prediction": predclass}
     except Exception as e:
         return {"error": str(e)}
+
