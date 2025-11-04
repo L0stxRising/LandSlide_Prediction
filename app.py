@@ -18,17 +18,24 @@ def root():
     return {"message": "ONNX Prediction API is running!"}
 encList=["Low","Moderate","High","Very High"]
 @app.post("/predict")
+@app.post("/predict")
 def predict(data: InputData):
     try:
-        # Prepare input for ONNX
         input_name = sess.get_inputs()[0].name
-        inputs = {input_name: [data.numbers]}
+        # Send as 1D array
+        inputs = {input_name: np.array(data.numbers, dtype=np.float32)}
         
-        # Run inference
         output = sess.run(None, inputs)
-        prediction = output[0][0]
-        pred=int(np.argmax(prediction))
-        predclass=encList[pred]
-        return {"prediction": (predclass)}
+        preds = np.array(output[0])
+        
+        pred_idx = int(np.argmax(preds))
+        pred_class = encList[pred_idx] if pred_idx < len(encList) else f"Class {pred_idx}"
+
+        return {
+            "predicted_class": pred_class,
+            "index": pred_idx,
+            "raw_output": preds.tolist()
+        }
+
     except Exception as e:
         return {"error": str(e)}
