@@ -1,41 +1,47 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import onnxruntime as rt
-import numpy as np  # <-- add this
+import numpy as np
 
-# Initialize FastAPI app
-app = FastAPI(title="Number Prediction API")
+# === Initialize FastAPI app ===
+app = FastAPI(title="Landslide Prediction API")
 
-# Load ONNX model
+# === Enable CORS (so frontend can fetch data) ===
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # allow all origins (you can restrict later)
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# === Load ONNX model ===
 sess = rt.InferenceSession("model.onnx")
 
-# Input schema
+# === Input Schema ===
 class InputData(BaseModel):
     numbers: list[float]
 
 @app.get("/")
 def root():
-    return {"message": "ONNX Prediction API is running!"}
-encList=["Low","Moderate","High","Very High"]
-@app.post("/predict")
+    return {"message": "Landslide Prediction API is running!"}
+
+encList = ["Low", "Moderate", "High", "Very High"]
+
 @app.post("/predict")
 def predict(data: InputData):
     try:
         input_name = sess.get_inputs()[0].name
-        # Send as 1D array
-        inputs = {input_name: np.array(data.numbers, dtype=np.float32)}
-        
+        inputs = {input_name: [data.numbers]}
         output = sess.run(None, inputs)
-        preds = np.array(output[0])
-        
-        pred_idx = int(np.argmax(preds))
-        pred_class = encList[pred_idx] if pred_idx < len(encList) else f"Class {pred_idx}"
-
+        prediction = output[0][0]
+        pred_index = int(np.argmax(prediction))
+        pred_class = encList[pred_index]
         return {
-            "predicted_class": pred_class,
-            "index": pred_idx,
-            "raw_output": preds.tolist()
+            "prediction": pred_class,
+            "raw_output": prediction.tolist(),
+            "index": pred_index
         }
-
     except Exception as e:
         return {"error": str(e)}
