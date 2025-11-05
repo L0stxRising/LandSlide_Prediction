@@ -8,21 +8,18 @@ import numpy as np
 import os
 
 # === Initialize app ===
-
 app = FastAPI(title="Landslide Prediction API")
 
 # === Enable CORS ===
-
 app.add_middleware(
-CORSMiddleware,
-allow_origins=["*"],
-allow_credentials=True,
-allow_methods=["*"],
-allow_headers=["*"],
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # === Serve static files ===
-
 if not os.path.exists("static"):
     os.makedirs("static")
 
@@ -33,18 +30,16 @@ def serve_home():
     """Serve the main website page"""
     index_path = os.path.join("static", "index.html")
     if os.path.exists(index_path):
-    return FileResponse(index_path)
+        return FileResponse(index_path)
     return {"error": "index.html not found"}
 
 # === ONNX Model ===
-
 sess = rt.InferenceSession("model.onnx")
 encList = ["Low", "Moderate", "High", "Very High"]
 
 # === Input data schema ===
-
 class InputData(BaseModel):
-numbers: list[float]  # Now expects 7 values: temp, humidity, precipitation, soil moisture, elevation, slope, vegetation
+    numbers: list[float]  # 7 values: temp, humidity, precipitation, soil moisture, elevation, slope, vegetation
 
 @app.post("/predict")
 def predict(data: InputData):
