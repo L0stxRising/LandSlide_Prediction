@@ -24,7 +24,7 @@ allow_headers=["*"],
 # === Serve static files ===
 
 if not os.path.exists("static"):
-os.makedirs("static")
+    os.makedirs("static")
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
@@ -86,3 +86,4 @@ return {"error": "Input must contain exactly 7 values: temp, humidity, precipita
 except Exception as e:
     return {"error": str(e)}
 ```
+
