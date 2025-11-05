@@ -30,11 +30,11 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/")
 def serve_home():
-"""Serve the main website page"""
-index_path = os.path.join("static", "index.html")
-if os.path.exists(index_path):
-return FileResponse(index_path)
-return {"error": "index.html not found"}
+    """Serve the main website page"""
+    index_path = os.path.join("static", "index.html")
+    if os.path.exists(index_path):
+    return FileResponse(index_path)
+    return {"error": "index.html not found"}
 
 # === ONNX Model ===
 
@@ -48,42 +48,39 @@ numbers: list[float]  # Now expects 7 values: temp, humidity, precipitation, soi
 
 @app.post("/predict")
 def predict(data: InputData):
-try:
-if len(data.numbers) != 7:
-return {"error": "Input must contain exactly 7 values: temp, humidity, precipitation, soil_moisture, elevation, slope, vegetation"}
+    try:
+        if len(data.numbers) != 7:
+            return {"error": "Input must contain exactly 7 values: temp, humidity, precipitation, soil_moisture, elevation, slope, vegetation"}
 
-```
-    # Model inputs (first 5 values only)
-    model_input = np.array(data.numbers[:5], dtype=np.float32)
-    input_name = sess.get_inputs()[0].name
-    output = sess.run(None, {input_name: model_input})
-    prediction = output[0]
-    pred_idx = int(np.argmax(prediction))
-    predclass = encList[pred_idx]
+        # Model inputs (first 5 values only, with batch dimension)
+        model_input = np.array([data.numbers[:5]], dtype=np.float32)
+        input_name = sess.get_inputs()[0].name
+        output = sess.run(None, {input_name: model_input})
+        prediction = output[0]
+        pred_idx = int(np.argmax(prediction))
+        predclass = encList[pred_idx]
 
-    # === Post-processing adjustments ===
-    slope = data.numbers[5]
-    vegetation = data.numbers[6]
+        # === Post-processing adjustments ===
+        slope = data.numbers[5]
+        vegetation = data.numbers[6]
 
-    # Adjust based on slope
-    if slope > 30 and predclass != "Very High":
-        idx = encList.index(predclass)
-        predclass = encList[min(idx + 1, len(encList) - 1)]
-    elif slope < 15 and predclass != "Low":
-        idx = encList.index(predclass)
-        predclass = encList[max(idx - 1, 0)]
+        # Adjust based on slope
+        if slope > 30 and predclass != "Very High":
+            idx = encList.index(predclass)
+            predclass = encList[min(idx + 1, len(encList) - 1)]
+        elif slope < 15 and predclass != "Low":
+            idx = encList.index(predclass)
+            predclass = encList[max(idx - 1, 0)]
 
-    # Adjust based on vegetation
-    if vegetation < 30 and predclass != "Very High":
-        idx = encList.index(predclass)
-        predclass = encList[min(idx + 1, len(encList) - 1)]
-    elif vegetation > 70 and predclass != "Low":
-        idx = encList.index(predclass)
-        predclass = encList[max(idx - 1, 0)]
+        # Adjust based on vegetation
+        if vegetation < 30 and predclass != "Very High":
+            idx = encList.index(predclass)
+            predclass = encList[min(idx + 1, len(encList) - 1)]
+        elif vegetation > 70 and predclass != "Low":
+            idx = encList.index(predclass)
+            predclass = encList[max(idx - 1, 0)]
 
-    return {"prediction": predclass}
+        return {"prediction": predclass}
 
-except Exception as e:
-    return {"error": str(e)}
-```
-
+    except Exception as e:
+        return {"error": str(e)}
