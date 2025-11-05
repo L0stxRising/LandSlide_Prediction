@@ -35,13 +35,15 @@
 </head>
 <body>
   <div id="ui-card">
-    <h1>🌄 Landslide Prediction</h1>
+    <h1>Landslide Prediction</h1>
     <div class="input-row">
       <div class="field"><label for="num0">Temperature (°C)</label><input id="num0" type="number" placeholder="e.g. 4.5"></div>
       <div class="field"><label for="num1">Humidity (%)</label><input id="num1" type="number" placeholder="e.g. 78"></div>
       <div class="field"><label for="num2">Precipitation (mm)</label><input id="num2" type="number" placeholder="e.g. 12"></div>
       <div class="field"><label for="num3">Soil Moisture (%)</label><input id="num3" type="number" placeholder="e.g. 31"></div>
       <div class="field full"><label for="num4">Elevation (m)</label><input id="num4" type="number" placeholder="e.g. 1320"></div>
+      <div class="field"><label for="num5">Slope (°)</label><input id="num5" type="number" placeholder="e.g. 35"></div>
+      <div class="field"><label for="num6">Vegetation Cover (%)</label><input id="num6" type="number" placeholder="e.g. 20"></div>
     </div>
     <div style="display:flex; gap:10px; align-items:center;">
       <button id="predictBtn">Predict</button>
@@ -305,7 +307,7 @@
 
   async function predict(){
     const values = [];
-    for (let i=0;i<5;i++) values.push(parseFloat(document.getElementById('num'+i).value) || 0);
+    for (let i=0;i<7;i++) values.push(parseFloat(document.getElementById('num'+i).value) || 0);
     loader.style.display = 'inline-block';
     resultEl.textContent = '';
     try{
@@ -350,3 +352,4 @@
   </script>
 </body>
 </html>
+
