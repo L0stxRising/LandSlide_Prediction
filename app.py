@@ -48,7 +48,7 @@ def predict(data: InputData):
             return {"error": "Input must contain exactly 7 values: temp, humidity, precipitation, soil_moisture, elevation, slope, vegetation"}
 
         # Model inputs (first 5 values only, with batch dimension)
-        model_input = np.array([data.numbers[:5]], dtype=np.float32)
+        model_input = np.array(data.numbers[:5], dtype=np.float32)
         input_name = sess.get_inputs()[0].name
         output = sess.run(None, {input_name: model_input})
         prediction = output[0]
@@ -79,3 +79,4 @@ def predict(data: InputData):
 
     except Exception as e:
         return {"error": str(e)}
+
